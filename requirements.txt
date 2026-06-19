@@ -1,0 +1,15 @@
+# Use Python 3.11. Shared analysis dependencies for BOTH the Snakemake and Nextflow ports
+# (the scripts/ stage code is identical for both engines).
+scanpy
+leidenalg
+igraph
+numpy
+pandas
+matplotlib
+
+# Orchestration
+snakemake
+
+# Nextflow + a JVM are installed separately (not pip), e.g.:
+#   conda install -p .venv -c bioconda -c conda-forge nextflow openjdk=21 graphviz
+# graphviz provides the `dot` CLI used to render the DAG images.

@@ -1,0 +1,86 @@
+# scRNA cohort workflow — Snakemake port.
+#
+# Snakemake is PULL-based: you declare each rule's output file pattern, and Snakemake works backwards
+# from `rule all` to infer the DAG from input/output filename matching. The {s} wildcard is what
+# SCATTERS prepare/qc/cluster/markers across samples; the aggregate rule's expand() over all samples is
+# the GATHER (it can't run until every sample's summary exists).
+#
+# Run from the repo root (with the env's python on PATH):
+#   PATH=.venv/bin:$PATH snakemake -s workflow_snakemake/Snakefile --cores 4
+#   PATH=.venv/bin:$PATH snakemake -s workflow_snakemake/Snakefile --dag | dot -Tpng > workflow_snakemake/dag.png
+
+configfile: "config.yaml"
+
+SAMPLES = list(config["samples"])
+P = config["params"]
+OUT = "results_snakemake"
+
+
+rule all:
+    input:
+        f"{OUT}/cohort_summary.tsv",
+        f"{OUT}/cohort_summary.png",
+        expand(f"{OUT}/markers/{{s}}.tsv", s=SAMPLES),
+
+
+rule prepare:
+    output:
+        f"{OUT}/samples/{{s}}.h5ad",
+    params:
+        frac=lambda wc: config["samples"][wc.s]["fraction"],
+        seed=lambda wc: config["samples"][wc.s]["seed"],
+    shell:
+        "python scripts/prepare.py --sample {wildcards.s} "
+        "--fraction {params.frac} --seed {params.seed} --out {output}"
+
+
+rule qc:
+    input:
+        f"{OUT}/samples/{{s}}.h5ad",
+    output:
+        h5ad=f"{OUT}/qc/{{s}}.h5ad",
+        metrics=f"{OUT}/qc/{{s}}_metrics.tsv",
+    params:
+        mg=P["min_genes"], mc=P["min_cells"], mt=P["max_pct_mt"],
+    shell:
+        "python scripts/qc.py --input {input} --output {output.h5ad} "
+        "--metrics {output.metrics} --min-genes {params.mg} "
+        "--min-cells {params.mc} --max-pct-mt {params.mt}"
+
+
+rule cluster:
+    input:
+        f"{OUT}/qc/{{s}}.h5ad",
+    output:
+        h5ad=f"{OUT}/clustered/{{s}}.h5ad",
+        summary=f"{OUT}/clustered/{{s}}_summary.tsv",
+        umap=f"{OUT}/figures/{{s}}_umap.png",
+    params:
+        hvg=P["n_hvg"], pcs=P["n_pcs"], res=P["resolution"],
+    shell:
+        "python scripts/cluster.py --input {input} --output {output.h5ad} "
+        "--summary {output.summary} --umap {output.umap} --n-hvg {params.hvg} "
+        "--n-pcs {params.pcs} --resolution {params.res}"
+
+
+rule markers:
+    input:
+        f"{OUT}/clustered/{{s}}.h5ad",
+    output:
+        f"{OUT}/markers/{{s}}.tsv",
+    params:
+        top=P["top_markers"],
+    shell:
+        "python scripts/markers.py --input {input} --output {output} --top {params.top}"
+
+
+rule aggregate:
+    input:
+        qc=expand(f"{OUT}/qc/{{s}}_metrics.tsv", s=SAMPLES),
+        summaries=expand(f"{OUT}/clustered/{{s}}_summary.tsv", s=SAMPLES),
+    output:
+        tsv=f"{OUT}/cohort_summary.tsv",
+        plot=f"{OUT}/cohort_summary.png",
+    shell:
+        "python scripts/aggregate.py --qc {input.qc} --summaries {input.summaries} "
+        "--out-tsv {output.tsv} --out-plot {output.plot}"

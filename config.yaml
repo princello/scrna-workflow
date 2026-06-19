@@ -1,0 +1,15 @@
+# Shared logical config for the workflow. Snakemake reads this file directly; the Nextflow port keeps
+# the same values in nextflow.config (groovy idiom). The analysis code (scripts/) is identical for both.
+samples:
+  s1: {fraction: 0.8, seed: 1}
+  s2: {fraction: 0.6, seed: 2}
+  s3: {fraction: 0.7, seed: 3}
+
+params:
+  min_genes: 200
+  min_cells: 3
+  max_pct_mt: 10
+  n_hvg: 2000
+  n_pcs: 30
+  resolution: 1.0
+  top_markers: 10

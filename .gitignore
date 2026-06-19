@@ -1,0 +1,31 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# byte-compiled
+__pycache__/
+*.py[cod]
+
+# workflow outputs (regenerated on every run)
+results_snakemake/
+results_nextflow/
+
+# Snakemake state
+.snakemake/
+
+# Nextflow state
+work/
+.nextflow/
+.nextflow.log*
+
+# data artifacts
+*.h5ad
+
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# NOTE: the rendered DAG images under workflow_snakemake/ and workflow_nextflow/ ARE committed.
