@@ -109,3 +109,11 @@ requirements.txt
   point at each sample's CellRanger output instead.
 - `config.yaml` and `nextflow.config` hold the same values in each engine's idiom and are kept in sync
   by hand — a single source of truth would be the next refactor.
+
+## Related projects
+
+Part of a small single-cell / computational-biology portfolio — each a runnable, honestly-documented pipeline:
+
+- **[perturbseq-starter](https://github.com/princello/perturbseq-starter)** — Perturb-seq / CRISPR-screen analysis: guide assignment → Mixscape → pseudobulk-vs-per-cell DE → E-distance.
+- **[scatac-starter](https://github.com/princello/scatac-starter)** — single-cell ATAC: TSS-enrichment QC → tile/spectral clustering → gene activity → MACS3 peaks + TF-motif enrichment.
+- **[scrna-workflow](https://github.com/princello/scrna-workflow)** — the same multi-sample scRNA pipeline as a reproducible DAG in both Snakemake and Nextflow. *(this repo)*
